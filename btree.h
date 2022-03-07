@@ -25,9 +25,9 @@ namespace badgerdb
  */
 enum Datatype
 {
-	INTEGER = 0,
-	DOUBLE = 1,
-	STRING = 2
+    INTEGER = 0,
+    DOUBLE = 1,
+    STRING = 2
 };
 
 /**
@@ -35,10 +35,10 @@ enum Datatype
  */
 enum Operator
 { 
-	LT, 	/* Less Than */
-	LTE,	/* Less Than or Equal to */
-	GTE,	/* Greater Than or Equal to */
-	GT		/* Greater Than */
+    LT,     /* Less Than */
+    LTE,    /* Less Than or Equal to */
+    GTE,    /* Greater Than or Equal to */
+    GT      /* Greater Than */
 };
 
 
@@ -61,13 +61,13 @@ const  int INTARRAYNONLEAFSIZE = ( Page::SIZE - sizeof( int ) - sizeof( PageId )
 template <class T>
 class RIDKeyPair{
 public:
-	RecordId rid;
-	T key;
-	void set( RecordId r, T k)
-	{
-		rid = r;
-		key = k;
-	}
+    RecordId rid;
+    T key;
+    void set( RecordId r, T k)
+    {
+        rid = r;
+        key = k;
+    }
 };
 
 /**
@@ -77,13 +77,13 @@ public:
 template <class T>
 class PageKeyPair{
 public:
-	PageId pageNo;
-	T key;
-	void set( int p, T k)
-	{
-		pageNo = p;
-		key = k;
-	}
+    PageId pageNo;
+    T key;
+    void set( int p, T k)
+    {
+        pageNo = p;
+        key = k;
+    }
 };
 
 /**
@@ -94,10 +94,10 @@ public:
 template <class T>
 bool operator<( const RIDKeyPair<T>& r1, const RIDKeyPair<T>& r2 )
 {
-	if( r1.key != r2.key )
-		return r1.key < r2.key;
-	else
-		return r1.rid.page_number < r2.rid.page_number;
+    if( r1.key != r2.key )
+        return r1.key < r2.key;
+    else
+        return r1.rid.page_number < r2.rid.page_number;
 }
 
 /**
@@ -112,22 +112,22 @@ struct IndexMetaInfo{
   /**
    * Name of base relation.
    */
-	char relationName[20];
+    char relationName[20];
 
   /**
    * Offset of attribute, over which index is built, inside the record stored in pages.
    */
-	int attrByteOffset;
+    int attrByteOffset;
 
   /**
    * Type of the attribute over which index is built.
    */
-	Datatype attrType;
+    Datatype attrType;
 
   /**
    * Page number of root page of the B+ Tree inside the file index file.
    */
-	PageId rootPageNo;
+    PageId rootPageNo;
 };
 
 /*
@@ -144,17 +144,17 @@ struct NonLeafNodeInt{
   /**
    * Level of the node in the tree.
    */
-	int level;
+    int level;
 
   /**
    * Stores keys.
    */
-	int keyArray[ INTARRAYNONLEAFSIZE ];
+    int keyArray[ INTARRAYNONLEAFSIZE ];
 
   /**
    * Stores page numbers of child pages which themselves are other non-leaf/leaf nodes in the tree.
    */
-	PageId pageNoArray[ INTARRAYNONLEAFSIZE + 1 ];
+    PageId pageNoArray[ INTARRAYNONLEAFSIZE + 1 ];
 };
 
 
@@ -165,18 +165,18 @@ struct LeafNodeInt{
   /**
    * Stores keys.
    */
-	int keyArray[ INTARRAYLEAFSIZE ];
+    int keyArray[ INTARRAYLEAFSIZE ];
 
   /**
    * Stores RecordIds.
    */
-	RecordId ridArray[ INTARRAYLEAFSIZE ];
+    RecordId ridArray[ INTARRAYLEAFSIZE ];
 
   /**
    * Page number of the leaf on the right side.
-	 * This linking of leaves allows to easily move from one leaf to the next leaf during index scan.
+     * This linking of leaves allows to easily move from one leaf to the next leaf during index scan.
    */
-	PageId rightSibPageNo;
+    PageId rightSibPageNo;
 };
 
 
@@ -191,105 +191,105 @@ class BTreeIndex {
   /**
    * File object for the index file.
    */
-	File		*file;
+    File  *file;
 
   /**
    * Buffer Manager Instance.
    */
-	BufMgr	*bufMgr;
+    BufMgr  *bufMgr;
 
   /**
    * Page number of meta page.
    */
-	PageId	headerPageNum;
+    PageId  headerPageNum;
 
   /**
    * page number of root page of B+ tree inside index file.
    */
-	PageId	rootPageNum;
+    PageId  rootPageNum;
 
   /**
    * Datatype of attribute over which index is built.
    */
-	Datatype	attributeType;
+    Datatype  attributeType;
 
   /**
    * Offset of attribute, over which index is built, inside records. 
    */
-	int 		attrByteOffset;
+    int  attrByteOffset;
 
   /**
    * Number of keys in leaf node, depending upon the type of key.
    */
-	int			leafOccupancy;
+    int  leafOccupancy;
 
   /**
    * Number of keys in non-leaf node, depending upon the type of key.
    */
-	int			nodeOccupancy;
+    int  nodeOccupancy;
 
 
-	// MEMBERS SPECIFIC TO SCANNING
+    // MEMBERS SPECIFIC TO SCANNING
 
   /**
    * True if an index scan has been started.
    */
-	bool		scanExecuting;
+    bool  scanExecuting;
 
   /**
    * Index of next entry to be scanned in current leaf being scanned.
    */
-	int			nextEntry;
+    int  nextEntry;
 
   /**
    * Page number of current page being scanned.
    */
-	PageId	currentPageNum;
+    PageId  currentPageNum;
 
   /**
    * Current Page being scanned.
    */
-	Page		*currentPageData;
+    Page  *currentPageData;
 
   /**
    * Low INTEGER value for scan.
    */
-	int			lowValInt;
+    int  lowValInt;
 
   /**
    * Low DOUBLE value for scan.
    */
-	double	lowValDouble;
+    double  lowValDouble;
 
   /**
    * Low STRING value for scan.
    */
-	std::string	lowValString;
+    std::string lowValString;
 
   /**
    * High INTEGER value for scan.
    */
-	int			highValInt;
+    int  highValInt;
 
   /**
    * High DOUBLE value for scan.
    */
-	double	highValDouble;
+    double  highValDouble;
 
   /**
    * High STRING value for scan.
    */
-	std::string highValString;
-	
+    std::string highValString;
+    
   /**
    * Low Operator. Can only be GT(>) or GTE(>=).
    */
-	Operator	lowOp;
+    Operator    lowOp;
 
   /**
    * High Operator. Can only be LT(<) or LTE(<=).
    */
-	Operator	highOp;
+    Operator    highOp;
 
   /*
   * the pageId when the root page hasn't been split
@@ -380,9 +380,9 @@ class BTreeIndex {
    *
    * @param relationName        Name of file.
    * @param outIndexName        Return the name of index file.
-   * @param bufMgrIn                        Buffer Manager Instance
-   * @param attrByteOffset          Offset of attribute, over which index is to be built, in the record
-   * @param attrType                        Datatype of attribute over which index is built
+   * @param bufMgrIn            Buffer Manager Instance
+   * @param attrByteOffset      Offset of attribute, over which index is to be built, in the record
+   * @param attrType            Datatype of attribute over which index is built
    */
   BTreeIndex(const std::string & relationName, std::string & outIndexName,
                         BufMgr *bufMgrIn,   const int attrByteOffset,   const Datatype attrType);
