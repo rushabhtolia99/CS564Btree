@@ -297,33 +297,31 @@ class BTreeIndex {
   PageId initialRootPageNum;
 
   /**
-   * Helper function to find the next level of page for the key should be in. 
-   * @param curPage       The current Page we are checking
-   * @param nextNodenum   Return value for the next level page ID
-   * @param key           The Key we are checking
+   * A helper function to help find where insertedData will be inserted
+   * @param nonLeafNode   The internal node we are currently checking
+   * @param insertedData  The data to be inserted
   */
-//  const void findNextNonLeafNode(NonLeafNodeInt *curPage, PageId &nextNodenum, int key);
-  const PageId findBelowNode(NonLeafNodeInt *curPage, int key);
+  PageId findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData);
   
   /**
-   * Recursive function to insert the index entry to the index file
-   * @param curPage           The current Page we are checking
-   * @param curPageNum        PageId of current Page
-   * @param nodeIsLeaf        If the current page is a leaf node or nonleaf node
-   * @param dataEntry         Index entry that needs to be inserted
-   * @param newchildEntry     A pageKeyPair that contains an entry that is pushed up after splitting a node; it is null if no split in child nodes
+   * A recursive function used to insert an RIDKey pair
+   * @param currentPage       The Node we are currently checking
+   * @param currentNodeID     PageId of the current Node
+   * @param isLeaf            True if the current Node is a leaf and false otherwise
+   * @param insertedData      RIDKey pair that will be inserted to the tree
+   * @param pushedUpEntry     A PageKeyPair pointer that will return to null if there is no split at the child node and return the pointer
+   *                          to the new page if there is a split
   */
-  const void insertData(Page *curPage, PageId curPageNum, bool nodeIsLeaf, const RIDKeyPair<int> dataEntry, PageKeyPair<int> *&newchildEntry);
+  void insertData(Page *currentPage, PageId currentNodeID, bool isLeaf, const RIDKeyPair<int> insertedData, PageKeyPair<int> *&pushedUpEntry);
   
 
   /**
-   * Recursive function to insert the index entry to the index file
-   * @param oldNode           the node that needs to be split
-   * @param oldPageNum        PageId of the oldNode
-   * @param newchildEntry     A pageKeyPair that contains an entry that is pushed up after splitting a node;
-   *                          The value gets updated to contain the new keyPair that needs to be pushed up;
+   * A helper function to split an internal Node
+   * @param leftNode          The original Node that will be split. The Node will become the lelf Node after splitting.
+   * @param leftNodeID        The PageId of the original Node
+   * @param pushedUpEntry     A pageKeyPair pointer that is used to store the entry that will be pushed up as a result of splitting an internal node
   */
-  const void splitNonLeaf(NonLeafNodeInt *oldNode, PageId oldPageNum, PageKeyPair<int> *&newchildEntry);
+  void internalNodeSplit(NonLeafNodeInt *leftNode, PageId leftNodeID, PageKeyPair<int> *&pushedUpEntry);
   
   /**
    * When the root needs to be split, create a new root node and insert the entry pushed up and update the header page 
@@ -339,20 +337,20 @@ class BTreeIndex {
    * @param newchildEntry The PageKeyPair that need to push up
    * @param dataEntry     The data entry that need to be inserted 
   */
-  const void splitLeaf(LeafNodeInt *leaf, PageId leafPageNum, PageKeyPair<int> *&newchildEntry, const RIDKeyPair<int> dataEntry);
+  const void childSplit(LeafNodeInt *leaf, PageId leafPageNum, PageKeyPair<int> *&newchildEntry, const RIDKeyPair<int> dataEntry);
   /**
    * Helper function to insert entry into a leaf node
    * @param leaf     leaf node that need to be inserted into
    * @param entry    Then entry needed to be inserted
    */
-  const void insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> entry);
+  const void childEntry(LeafNodeInt *leaf, RIDKeyPair<int> entry);
   /**
    * Helper function to insert entry into a non leaf node
    * @param nonleaf  Nonleaf node that need to be inserted into
    * @param entry    Then entry needed to be inserted
    *
    */
-  const void insertNonLeaf(NonLeafNodeInt *nonleaf, PageKeyPair<int> *entry);
+  const void internalNodeEntry(NonLeafNodeInt *nonleaf, PageKeyPair<int> *entry);
   /**
    * Helper function to check if the key is satisfies
    * @param lowVal   Low value of range, pointer to integer / double / char string
@@ -417,7 +415,7 @@ class BTreeIndex {
    * @throws  BadScanrangeException If lowVal > highval
 	 * @throws  NoSuchKeyFoundException If there is no key in the B+ tree that satisfies the scan criteria.
 	**/
-	const void startScan(const void* lowVal, const Operator lowOp, const void* highVal, const Operator highOp);
+	void startScan(const void* lowVal, const Operator lowOp, const void* highVal, const Operator highOp);
 
 
   /**
