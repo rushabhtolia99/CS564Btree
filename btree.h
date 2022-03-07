@@ -323,7 +323,7 @@ class BTreeIndex {
    * @param newchildEntry     A pageKeyPair that contains an entry that is pushed up after splitting a node;
    *                          The value gets updated to contain the new keyPair that needs to be pushed up;
   */
-  const void splitNonLeaf(NonLeafNodeInt *oldNode, PageId oldPageNum, PageKeyPair<int> *&newchildEntry);
+  const void internalNodeSplit(NonLeafNodeInt *oldNode, PageId oldPageNum, PageKeyPair<int> *&newchildEntry);
   
   /**
    * When the root needs to be split, create a new root node and insert the entry pushed up and update the header page 
@@ -339,20 +339,20 @@ class BTreeIndex {
    * @param newchildEntry The PageKeyPair that need to push up
    * @param dataEntry     The data entry that need to be inserted 
   */
-  const void splitLeaf(LeafNodeInt *leaf, PageId leafPageNum, PageKeyPair<int> *&newchildEntry, const RIDKeyPair<int> dataEntry);
+  const void childSplit(LeafNodeInt *leaf, PageId leafPageNum, PageKeyPair<int> *&newchildEntry, const RIDKeyPair<int> dataEntry);
   /**
    * Helper function to insert entry into a leaf node
    * @param leaf     leaf node that need to be inserted into
    * @param entry    Then entry needed to be inserted
    */
-  const void insertLeaf(LeafNodeInt *leaf, RIDKeyPair<int> entry);
+  const void childEntry(LeafNodeInt *leaf, RIDKeyPair<int> entry);
   /**
    * Helper function to insert entry into a non leaf node
    * @param nonleaf  Nonleaf node that need to be inserted into
    * @param entry    Then entry needed to be inserted
    *
    */
-  const void insertNonLeaf(NonLeafNodeInt *nonleaf, PageKeyPair<int> *entry);
+  const void internalNodeEntry(NonLeafNodeInt *nonleaf, PageKeyPair<int> *entry);
   /**
    * Helper function to check if the key is satisfies
    * @param lowVal   Low value of range, pointer to integer / double / char string
@@ -417,7 +417,7 @@ class BTreeIndex {
    * @throws  BadScanrangeException If lowVal > highval
 	 * @throws  NoSuchKeyFoundException If there is no key in the B+ tree that satisfies the scan criteria.
 	**/
-	const void startScan(const void* lowVal, const Operator lowOp, const void* highVal, const Operator highOp);
+	void startScan(const void* lowVal, const Operator lowOp, const void* highVal, const Operator highOp);
 
 
   /**
