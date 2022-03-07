@@ -324,40 +324,44 @@ class BTreeIndex {
   void internalNodeSplit(NonLeafNodeInt *leftNode, PageId leftNodeID, PageKeyPair<int> *&pushedUpEntry);
   
   /**
-   * When the root needs to be split, create a new root node and insert the entry pushed up and update the header page 
-   * @param formerRootID   The pageId of the first pointer in the root page
-   * @param newRoot             The keyPair that is pushed up after splitting
-   * @param isLeaf            True if the formerRoot is leaf and false otherwise
+   * Helper function to split a root node.
+   *
+   * @param formerRootID   PageId of a root node before splitting
+   * @param newRoot        a PageKeyPair that that will be added to a new root
+   * @param isLeaf         true if a root node before splitting, false otherwise
    */
   void createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf);
-  
+
   /**
-   * Helper function to split a leaf node if needed.
-   * @param leafNode          Leaf node that is full
-   * @param leafNodeID   The number of page of that leaf
-   * @param pushedUpEntry The PageKeyPair that need to push up
-   * @param dataEntry     The data entry that need to be inserted 
+   * Helper function to split a leaf node.
+   *
+   * @param leafNode        leaf node to be split
+   * @param leafNodeID      PageId of a given leaf node
+   * @param pushedUpEntry   a PageKeyPair that that will be pushed up to a parent
+   * @param dataEntry       a data entry that will be inserted into a leaf after splitting
    */
   void childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> dataEntry);
-  
+
   /**
    * Helper function to insert a data entry at a leaf node.
-   * @param leafNode        leaf node that need to be inserted into
-   * @param insertedData    Then entry needed to be inserted
+   *
+   * @param leafNode        leaf node that an index entry is getting inserted into
+   * @param insertedData    a data entry getting inserted
    */
   void childEntry(LeafNodeInt *leafNode, RIDKeyPair<int> insertedData);
-  
+
   /**
    * Helper function to insert an index entry at a non-leaf node.
+   *
    * @param nonLeafNode             non-leaf node that an index entry is getting inserted into
-   * @param insertedInternalNode    an index entry is getting inserted
+   * @param insertedInternalNode    an index entry getting inserted
    *
    */
   void internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode);
-  
+
   /**
    * Helper function to determine if a given key is in a specified range.
-   * 
+   *
    * @param lowVal   Low value of range, pointer to integer / double / char string
    * @param lowOp    Low operator (GT/GTE)
    * @param highVal  High value of range, pointer to integer / double / char string
@@ -365,8 +369,8 @@ class BTreeIndex {
    * @param key      Key to be checked
    * @return true if a given key is in a specified range, false otherwise.
    */
-  bool isKeyFound(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key); 
-  
+  bool isKeyFound(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key);
+
  public:
 
   /**
@@ -382,24 +386,24 @@ class BTreeIndex {
    */
   BTreeIndex(const std::string & relationName, std::string & outIndexName,
                         BufMgr *bufMgrIn,   const int attrByteOffset,   const Datatype attrType);
-    
+
 
   /**
    * BTreeIndex Destructor. 
    * End any initialized scan, flush index file, after unpinning any pinned pages, from the buffer manager
    * and delete file instance thereby closing the index file.
-   * Destructor should not throw any exceptions. All exceptions should be caught in here itself. 
+   * Destructor should not throw any exceptions. All exceptions should be caught in here itself.
    **/
   ~BTreeIndex();
 
 
   /**
-   * Insert a new entry using the pair <value,rid>. 
+   * Insert a new entry using the pair <value,rid>.
    * Start from root to recursively find out the leaf to insert the entry in. The insertion may cause splitting of leaf node.
    * This splitting will require addition of new leaf page number entry into the parent non-leaf, which may in-turn get split.
    * This may continue all the way upto the root causing the root to get split. If root gets split, metapage needs to be changed accordingly.
    * Make sure to unpin pages as soon as you can.
-   * 
+   *
    * @param key         Key to insert, pointer to integer/double/char string
    * @param rid         Record ID of a record whose entry is getting inserted into the index.
    **/
@@ -407,13 +411,13 @@ class BTreeIndex {
 
 
   /**
-   * Begin a filtered scan of the index.  For instance, if the method is called 
-   * using ("a",GT,"d",LTE) then we should seek all entries with a value 
+   * Begin a filtered scan of the index.  For instance, if the method is called
+   * using ("a",GT,"d",LTE) then we should seek all entries with a value
    * greater than "a" and less than or equal to "d".
    * If another scan is already executing, that needs to be ended here.
    * Set up all the variables for scan. Start from root to find out the leaf page that contains the first RecordID
    * that satisfies the scan parameters. Keep that page pinned in the buffer pool.
-   * 
+   *
    * @param lowVal  Low value of range, pointer to integer / double / char string
    * @param lowOp       Low operator (GT/GTE)
    * @param highVal High value of range, pointer to integer / double / char string
@@ -428,7 +432,7 @@ class BTreeIndex {
   /**
    * Fetch the record id of the next index entry that matches the scan.
    * Return the next record from current page being scanned. If current page has been scanned to its entirety, move on to the right sibling of current page, if any exists, to start scanning that page. Make sure to unpin any pages that are no longer required.
-   * 
+   *
    * @param outRid  RecordId of next record found that satisfies the scan criteria returned in this
    * @throws ScanNotInitializedException If no scan has been initialized.
    * @throws IndexScanCompletedException If no more records, satisfying the scan criteria, are left to be scanned.
@@ -438,11 +442,11 @@ class BTreeIndex {
 
   /**
    * Terminate the current scan. Unpin any pinned pages. Reset scan specific variables.
-   * 
+   *
    * @throws ScanNotInitializedException If no scan has been initialized.
    **/
   void endScan();
-    
+
 };
 
 }
