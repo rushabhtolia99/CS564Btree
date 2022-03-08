@@ -302,6 +302,7 @@ class BTreeIndex {
    * A helper function to help find where insertedData will be inserted
    * @param nonLeafNode   The internal node we are currently checking
    * @param insertedData  The data to be inserted
+   * @return              The PageID of the next node to be checked
   */
   PageId findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData);
   
