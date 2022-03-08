@@ -284,7 +284,7 @@ void BTreeIndex::createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, b
 // @param pushedUpEntry, the entry that will need to be pushed up accordingly
 // @param dataEntry, the data value that is trying to get entered into the Btree
 */
-void BTreeIndex::childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> dataEntry)
+void BTreeIndex::childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> insertedData)
 {
   int middleIndex = leafOccupancy/2;
   PageId newLeafID;
@@ -293,7 +293,7 @@ void BTreeIndex::childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPai
   bufMgr->allocPage(file, newLeafID, newLeaf);
   newLeafNode = (LeafNodeInt *)newLeaf;
 
-  if (leafNode->keyArray[middleIndex] < dataEntry.key && leafOccupancy % 2 == 1){
+  if (leafNode->keyArray[middleIndex] < insertedData.key && leafOccupancy % 2 == 1){
     middleIndex++;
   }
 
@@ -304,11 +304,11 @@ void BTreeIndex::childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPai
     leafNode->keyArray[i] = 0;
   }
   
-   if (dataEntry.key < newLeafNode->keyArray[0]){
-     childEntry(leafNode, dataEntry);
+   if (insertedData.key < newLeafNode->keyArray[0]){
+     childEntry(leafNode, insertedData);
    }
    else{
-     childEntry(newLeafNode, dataEntry);
+     childEntry(newLeafNode, insertedData);
    }
   pushedUpEntry = new PageKeyPair<int>();
   newLeafNode->rightSibPageNo = leafNode->rightSibPageNo;
