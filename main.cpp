@@ -186,9 +186,8 @@ void test3()
 	deleteRelation();
 }
 
+// SELF MADE TEST #1, tests the funcitonality of a large relation size to force non-leaf node split
 void largeTreeConstructTest() {
-
-	//SELF TEST #1, tests the funcitonality of a large relation size and then a forceful non-leaf node split
 	std::cout << "--------------------" << std::endl;
 	std::cout << "catchRelationForwardValue" << std::endl;
 	catchRelationForwardValue(100000);
@@ -196,6 +195,7 @@ void largeTreeConstructTest() {
 	deleteRelation();
 }
 
+// SELF MADE TEST #2, give 5000 consecutive numbers from 0 to 4999 to the Btree and search for key value ranging from -1000 to 6000
 void searchKeyTest() {
 	std::cout << "--------------------" << std::endl;
 	std::cout << "catchRelationForwardValue" << std::endl;
@@ -205,6 +205,9 @@ void searchKeyTest() {
 
 }
 
+/** A copy function of createRelationForward that takes the number of relation as argument
+  * @param totalSize    the total number of relation that will be passed to the Btree
+  */ 
 void catchRelationForwardValue(int totalSize) {
 
 	std::vector<RecordId> ridVec;
@@ -452,6 +455,7 @@ void indexTests3()
   {
   }
 }
+
 // -----------------------------------------------------------------------------
 // intTests
 // -----------------------------------------------------------------------------
@@ -499,6 +503,7 @@ BTreeIndex index(relationName, intIndexName, bufMgr, offsetof(tuple,i), INTEGER)
 	// run some tests
 	checkPassFail(intScan(&index,-1000,GTE,6000,LTE), 5000)
 }
+
 int intScan(BTreeIndex * index, int lowVal, Operator lowOp, int highVal, Operator highOp)
 {
   RecordId scanRid;
