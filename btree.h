@@ -354,7 +354,7 @@ class BTreeIndex {
   void internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode);
     
   /**
-   * Helper function to insert a data entry at a leaf node.
+   * Helper function that inserts data entries into leaf nodes.
    *
    * @param leafNode        leaf node that an index entry is getting inserted into
    * @param insertedData    a data entry getting inserted
