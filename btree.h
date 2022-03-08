@@ -198,110 +198,105 @@ class BTreeIndex {
   /**
    * File object for the index file.
    */
-    File  *file;
+  File  *file;
 
   /**
    * Buffer Manager Instance.
    */
-    BufMgr  *bufMgr;
+  BufMgr  *bufMgr;
 
   /**
    * Page number of meta page.
    */
-    PageId  headerPageNum;
+  PageId  headerPageNum;
 
   /**
    * page number of root page of B+ tree inside index file.
    */
-    PageId  rootPageNum;
+  PageId  rootPageNum;
 
   /**
    * Datatype of attribute over which index is built.
    */
-    Datatype  attributeType;
+  Datatype  attributeType;
 
   /**
    * Offset of attribute, over which index is built, inside records. 
    */
-    int  attrByteOffset;
+  int  attrByteOffset;
 
   /**
    * Number of keys in leaf node, depending upon the type of key.
    */
-    int  leafOccupancy;
+  int  leafOccupancy;
 
   /**
    * Number of keys in non-leaf node, depending upon the type of key.
    */
-    int  nodeOccupancy;
+  int  nodeOccupancy;
 
 
-    // MEMBERS SPECIFIC TO SCANNING
+  // MEMBERS SPECIFIC TO SCANNING
 
   /**
    * True if an index scan has been started.
    */
-    bool  scanExecuting;
+  bool  scanExecuting;
 
   /**
    * Index of next entry to be scanned in current leaf being scanned.
    */
-    int  nextEntry;
+  int  nextEntry;
 
   /**
    * Page number of current page being scanned.
    */
-    PageId  currentPageNum;
+  PageId  currentPageNum;
 
   /**
    * Current Page being scanned.
    */
-    Page  *currentPageData;
+  Page  *currentPageData;
 
   /**
    * Low INTEGER value for scan.
    */
-    int  lowValInt;
+  int  lowValInt;
 
   /**
    * Low DOUBLE value for scan.
    */
-    double  lowValDouble;
+  double  lowValDouble;
 
   /**
    * Low STRING value for scan.
    */
-    std::string lowValString;
+  std::string lowValString;
 
   /**
    * High INTEGER value for scan.
    */
-    int  highValInt;
+  int  highValInt;
 
   /**
    * High DOUBLE value for scan.
    */
-    double  highValDouble;
+  double  highValDouble;
 
   /**
    * High STRING value for scan.
    */
-    std::string highValString;
+  std::string highValString;
     
   /**
    * Low Operator. Can only be GT(>) or GTE(>=).
    */
-    Operator    lowOp;
+  Operator    lowOp;
 
   /**
    * High Operator. Can only be LT(<) or LTE(<=).
    */
-    Operator    highOp;
-
-  /*
-  * the pageId when the root page hasn't been split
-  */
-  PageId initialRootPageNum;
+  Operator    highOp;
 
   /**
    * A helper function to help find where insertedData will be inserted
@@ -335,7 +330,7 @@ class BTreeIndex {
    *
    * @param formerRootID   PageId of a root node before splitting
    * @param newRoot        a PageKeyPair that that will be added to a new root
-   * @param isLeaf         true if a root node before splitting, false otherwise
+   * @param isLeaf         true if formerRootId is a leaf node before splitting, false otherwise
    */
   void createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf);
 
@@ -345,9 +340,9 @@ class BTreeIndex {
    * @param leafNode        leaf node to be split
    * @param leafNodeID      PageId of a given leaf node
    * @param pushedUpEntry   a PageKeyPair that that will be pushed up to a parent
-   * @param dataEntry       a data entry that will be inserted into a leaf after splitting
+   * @param insertedData    a data entry that will be inserted into a leaf after splitting
    */
-  void childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> dataEntry);
+  void childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> insertedData);
 
   /**
    * Helper function to insert a data entry at a leaf node.
@@ -369,12 +364,12 @@ class BTreeIndex {
   /**
    * Helper function to determine if a given key is in a specified range.
    *
-   * @param lowVal   Low value of range, pointer to integer / double / char string
+   * @param lowVal   Low value of range
    * @param lowOp    Low operator (GT/GTE)
-   * @param highVal  High value of range, pointer to integer / double / char string
+   * @param highVal  High value of range
    * @param highOp   High operator (LT/LTE)
    * @param key      Key to be checked
-   * @return true if a given key is in a specified range, false otherwise.
+   * @return         true if a given key is in a specified range, false otherwise.
    */
   bool isKeyFound(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key);
 
@@ -410,7 +405,6 @@ class BTreeIndex {
    * This splitting will require addition of new leaf page number entry into the parent non-leaf, which may in-turn get split.
    * This may continue all the way upto the root causing the root to get split. If root gets split, metapage needs to be changed accordingly.
    * Make sure to unpin pages as soon as you can.
-   *
    * @param key         Key to insert, pointer to integer/double/char string
    * @param rid         Record ID of a record whose entry is getting inserted into the index.
    **/
@@ -424,9 +418,8 @@ class BTreeIndex {
    * If another scan is already executing, that needs to be ended here.
    * Set up all the variables for scan. Start from root to find out the leaf page that contains the first RecordID
    * that satisfies the scan parameters. Keep that page pinned in the buffer pool.
-   *
    * @param lowVal  Low value of range, pointer to integer / double / char string
-   * @param lowOp       Low operator (GT/GTE)
+   * @param lowOp   Low operator (GT/GTE)
    * @param highVal High value of range, pointer to integer / double / char string
    * @param highOp  High operator (LT/LTE)
    * @throws  BadOpcodesException If lowOp and highOp do not contain one of their their expected values 
@@ -439,7 +432,6 @@ class BTreeIndex {
   /**
    * Fetch the record id of the next index entry that matches the scan.
    * Return the next record from current page being scanned. If current page has been scanned to its entirety, move on to the right sibling of current page, if any exists, to start scanning that page. Make sure to unpin any pages that are no longer required.
-   *
    * @param outRid  RecordId of next record found that satisfies the scan criteria returned in this
    * @throws ScanNotInitializedException If no scan has been initialized.
    * @throws IndexScanCompletedException If no more records, satisfying the scan criteria, are left to be scanned.
@@ -449,7 +441,6 @@ class BTreeIndex {
 
   /**
    * Terminate the current scan. Unpin any pinned pages. Reset scan specific variables.
-   *
    * @throws ScanNotInitializedException If no scan has been initialized.
    **/
   void endScan();
