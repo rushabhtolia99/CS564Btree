@@ -1,0 +1,1 @@
+Additional tests, largeTreeConstructTest() and searchKeyTest(), are in main.cpp. Design Report.pdf is also in the folder.
