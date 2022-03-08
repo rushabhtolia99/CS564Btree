@@ -41,16 +41,15 @@ namespace badgerdb
    *
    * @param relationName        Name of file.
    * @param outIndexName        Return the name of index file.
-   * @param bufMgrIn                        Buffer Manager Instance
-   * @param attrByteOffset          Offset of attribute, over which index is to be built, in the record
-   * @param attrType                        Datatype of attribute over which index is built
+   * @param bufMgrIn            Buffer Manager Instance
+   * @param attrByteOffset      Offset of attribute, over which index is to be built, in the record
+   * @param attrType            Datatype of attribute over which index is built
    */
-BTreeIndex::BTreeIndex(const std::string & relationName,
+  BTreeIndex::BTreeIndex(const std::string & relationName,
         std::string & outIndexName,
         BufMgr *bufMgrIn,
         const int attrByteOffset,
-        const Datatype attrType)
-{
+        const Datatype attrType) {
    nodeOccupancy = INTARRAYNONLEAFSIZE;
    leafOccupancy = INTARRAYLEAFSIZE;
    bufMgr = bufMgrIn;
@@ -61,7 +60,7 @@ BTreeIndex::BTreeIndex(const std::string & relationName,
    outIndexName = idxStr.str();
 
    try {
-	   Page *firstPageInBlob;
+       Page *firstPageInBlob;
        file = new BlobFile(outIndexName, false);
        headerPageNum = file->getFirstPageNo();
        bufMgr->readPage(file, headerPageNum, firstPageInBlob);
@@ -73,10 +72,10 @@ BTreeIndex::BTreeIndex(const std::string & relationName,
          throw BadIndexInfoException(outIndexName);
        }
        bufMgr->unPinPage(file, headerPageNum, false);
-     } catch(FileNotFoundException e) {
+   } catch(FileNotFoundException e) {
        Page *rootPage;
        Page *firstPage;
-	   file = new BlobFile(outIndexName, true);
+       file = new BlobFile(outIndexName, true);
        bufMgr->allocPage(file, rootPageNum, rootPage);
        bufMgr->allocPage(file, headerPageNum, firstPage);
 
@@ -88,30 +87,29 @@ BTreeIndex::BTreeIndex(const std::string & relationName,
        
        LeafNodeInt *root = (LeafNodeInt *)rootPage;
        firstRootValue = rootPageNum;
-	   root->rightSibPageNo = INVALID_NUMBER;
+       root->rightSibPageNo = INVALID_NUMBER;
 
        bufMgr->unPinPage(file, rootPageNum, true);
-	   bufMgr->unPinPage(file, headerPageNum, true);
+       bufMgr->unPinPage(file, headerPageNum, true);
 
-	   RecordId recordID;
+       RecordId recordID;
        FileScan scannedFile(relationName, bufMgr);
 
-       try{
+       try {
          for(;;) {
            scannedFile.scanNext(recordID);
            std::string currentRecord = scannedFile.getRecord();
            insertEntry(currentRecord.c_str() + attrByteOffset, recordID);
          }
-       }
-       catch(EndOfFileException e) {
+       } catch(EndOfFileException e) {
          bufMgr->flushFile(file);
        }
-     }
+   }
 }
 
-// -----------------------------------------------------------------------------
-// BTreeIndex::~BTreeIndex -- destructor
-// -----------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
+  // BTreeIndex::~BTreeIndex -- destructor
+  // -----------------------------------------------------------------------------
 
   /**
    * BTreeIndex Destructor. 
@@ -119,13 +117,12 @@ BTreeIndex::BTreeIndex(const std::string & relationName,
    * and delete file instance thereby closing the index file.
    * Destructor should not throw any exceptions. All exceptions should be caught in here itself.
    **/
-BTreeIndex::~BTreeIndex()
-{
-  scanExecuting = false;
-  bufMgr->flushFile(BTreeIndex::file);
-  delete file;
-  file = nullptr;
-}
+  BTreeIndex::~BTreeIndex() {
+    scanExecuting = false;
+    bufMgr->flushFile(BTreeIndex::file);
+    delete file;
+    file = nullptr;
+  }
 
 /*
 // The follwing method is used to help insert data into the btree by looking for the matching leaf node
