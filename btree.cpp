@@ -127,24 +127,6 @@ namespace badgerdb
   }
 
   /**
-   * A helper function to help find where insertedData will be inserted
-   * @param nonLeafNode   The internal node we are currently checking
-   * @param insertedData  The data to be inserted
-   * @return              The PageID of the next node to be checked
-  */
-  PageId BTreeIndex::findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData)
-  {
-    int i = 0;
-    if(insertedData < nonLeafNode->keyArray[i]) {
-      return nonLeafNode->pageNoArray[i];
-    }
-    while (i < nodeOccupancy && nonLeafNode->pageNoArray[i+1] != INVALID_NUMBER && (nonLeafNode->keyArray[i] <= insertedData)) {
-      i++;
-    }
-    return nonLeafNode->pageNoArray[i];
-  }
-
-  /**
    * A recursive function used to insert an RIDKey pair
    * @param currentPage       The Node we are currently checking
    * @param currentNodeID     PageId of the current Node
@@ -196,6 +178,57 @@ namespace badgerdb
       }
     }
   }
+	
+  /**
+   * A helper function to help find where insertedData will be inserted
+   * @param nonLeafNode   The internal node we are currently checking
+   * @param insertedData  The data to be inserted
+   * @return              The PageID of the next node to be checked
+  */
+  PageId BTreeIndex::findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData)
+  {
+    int i = 0;
+    if(insertedData < nonLeafNode->keyArray[i]) {
+      return nonLeafNode->pageNoArray[i];
+    }
+    while (i < nodeOccupancy && nonLeafNode->pageNoArray[i+1] != INVALID_NUMBER && (nonLeafNode->keyArray[i] <= insertedData)) {
+      i++;
+    }
+    return nonLeafNode->pageNoArray[i];
+  }
+	
+  /**
+   * Helper function to split a root node.
+   *
+   * @param formerRootID   PageId of a root node before splitting
+   * @param newRoot        a PageKeyPair that that will be added to a new root
+   * @param isLeaf         true if formerRootId is a leaf node before splitting, false otherwise
+   */
+  void BTreeIndex::createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf)
+  {
+    PageId newRootNodeID;
+    Page *newRootPage;
+    Page *firstPageInBlob;
+    bufMgr->allocPage(file, newRootNodeID, newRootPage);
+    NonLeafNodeInt *newRootNode = (NonLeafNodeInt *)newRootPage;
+
+    newRootNode->pageNoArray[0] = formerRootID;
+    newRootNode->pageNoArray[1] = newRoot->pageNo;
+    newRootNode->keyArray[0] = newRoot->key;
+
+    if (isLeaf) {
+      newRootNode->level = 1;
+    } else {
+      newRootNode->level = 0;
+    }
+    IndexMetaInfo *metaPage;
+    bufMgr->readPage(file, headerPageNum, firstPageInBlob);
+    metaPage = (IndexMetaInfo *)firstPageInBlob;
+    metaPage->rootPageNo = newRootNodeID;
+    rootPageNum = newRootNodeID;
+    bufMgr->unPinPage(file, newRootNodeID, true);
+    bufMgr->unPinPage(file, headerPageNum, true);
+  }
 
   /**
    * A helper function to split an internal Node
@@ -243,39 +276,6 @@ namespace badgerdb
     if (rootPageNum == leftNodeID) {
       createNewRoot(leftNodeID, pushedUpEntry, false);
     }
-  }
-
-  /**
-   * Helper function to split a root node.
-   *
-   * @param formerRootID   PageId of a root node before splitting
-   * @param newRoot        a PageKeyPair that that will be added to a new root
-   * @param isLeaf         true if formerRootId is a leaf node before splitting, false otherwise
-   */
-  void BTreeIndex::createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf)
-  {
-    PageId newRootNodeID;
-    Page *newRootPage;
-    Page *firstPageInBlob;
-    bufMgr->allocPage(file, newRootNodeID, newRootPage);
-    NonLeafNodeInt *newRootNode = (NonLeafNodeInt *)newRootPage;
-
-    newRootNode->pageNoArray[0] = formerRootID;
-    newRootNode->pageNoArray[1] = newRoot->pageNo;
-    newRootNode->keyArray[0] = newRoot->key;
-
-    if (isLeaf) {
-      newRootNode->level = 1;
-    } else {
-      newRootNode->level = 0;
-    }
-    IndexMetaInfo *metaPage;
-    bufMgr->readPage(file, headerPageNum, firstPageInBlob);
-    metaPage = (IndexMetaInfo *)firstPageInBlob;
-    metaPage->rootPageNo = newRootNodeID;
-    rootPageNum = newRootNodeID;
-    bufMgr->unPinPage(file, newRootNodeID, true);
-    bufMgr->unPinPage(file, headerPageNum, true);
   }
 
   /**
@@ -327,6 +327,29 @@ namespace badgerdb
   }
 
   /**
+   * Helper function to insert an index entry at a non-leaf node.
+   *
+   * @param nonLeafNode             non-leaf node that an index entry is getting inserted into
+   * @param insertedInternalNode    an index entry getting inserted
+   *
+   */
+  void BTreeIndex::internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode)
+  { 
+    int index = 0;
+    while(nonLeafNode->pageNoArray[index+1] != INVALID_NUMBER) {
+      index++;
+    }
+
+    while(index >= 1 && (nonLeafNode->keyArray[index-1] > insertedInternalNode->key)) {
+      nonLeafNode->keyArray[index] = nonLeafNode->keyArray[index-1];
+      nonLeafNode->pageNoArray[index+1] = nonLeafNode->pageNoArray[index];
+      index--;
+    }
+    nonLeafNode->keyArray[index] = insertedInternalNode->key;
+    nonLeafNode->pageNoArray[index+1] = insertedInternalNode->pageNo;
+  }
+	
+  /**
    * Helper function to insert a data entry at a leaf node.
    *
    * @param leafNode        leaf node that an index entry is getting inserted into
@@ -351,29 +374,6 @@ namespace badgerdb
       leafNode->keyArray[index] = insertedData.key;
       leafNode->ridArray[index] = insertedData.rid;
     }
-  }
-
-  /**
-   * Helper function to insert an index entry at a non-leaf node.
-   *
-   * @param nonLeafNode             non-leaf node that an index entry is getting inserted into
-   * @param insertedInternalNode    an index entry getting inserted
-   *
-   */
-  void BTreeIndex::internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode)
-  { 
-    int index = 0;
-    while(nonLeafNode->pageNoArray[index+1] != INVALID_NUMBER) {
-      index++;
-    }
-
-    while(index >= 1 && (nonLeafNode->keyArray[index-1] > insertedInternalNode->key)) {
-      nonLeafNode->keyArray[index] = nonLeafNode->keyArray[index-1];
-      nonLeafNode->pageNoArray[index+1] = nonLeafNode->pageNoArray[index];
-      index--;
-    }
-    nonLeafNode->keyArray[index] = insertedInternalNode->key;
-    nonLeafNode->pageNoArray[index+1] = insertedInternalNode->pageNo;
   }
 
   // -----------------------------------------------------------------------------
