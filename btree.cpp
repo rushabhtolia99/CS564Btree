@@ -126,12 +126,11 @@ namespace badgerdb
     file = nullptr;
   }
 
-  /*
-  // The follwing method is used to help insert data into the btree by looking for the matching leaf node
-  // based on the internal nodes.
-  //
-  // @param nonLeafNode, the internal node being searched for
-  // @param insertedData, the data that is trying to be entered in.
+  /**
+   * A helper function to help find where insertedData will be inserted
+   * @param nonLeafNode   The internal node we are currently checking
+   * @param insertedData  The data to be inserted
+   * @return              The PageID of the next node to be checked
   */
   PageId BTreeIndex::findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData)
   {
@@ -145,11 +144,14 @@ namespace badgerdb
     return nonLeafNode->pageNoArray[i];
   }
 
-  /*
-  // The follwing method is recursively called to insert data into the corresponding file to help insert nodes.
-  //
-  // @param key, the value of the key to find the data
-  // @param rid, the matching record id
+  /**
+   * A recursive function used to insert an RIDKey pair
+   * @param currentPage       The Node we are currently checking
+   * @param currentNodeID     PageId of the current Node
+   * @param isLeaf            True if the current Node is a leaf and false otherwise
+   * @param insertedData      RIDKey pair that will be inserted to the tree
+   * @param pushedUpEntry     A PageKeyPair pointer that will return to null if there is no split at the child node and return the pointer
+   *                          to the new page if there is a split
   */
   void BTreeIndex::insertData(Page *currentPage, PageId currentNodeID, bool isLeaf, const RIDKeyPair<int> insertedData, PageKeyPair<int> *&pushedUpEntry)
   {
@@ -195,12 +197,11 @@ namespace badgerdb
     }
   }
 
-  /*
-  // The follwing method is used to help split the internal nodes rather than the leaf nodes. 
-  //
-  // @param leftNode, the node that is getting ready to be split 
-  // @param leftNodeID, the record id of the node left to the current node
-  // @param pushedUpEntry, the node that get pushed up after following the split of an internal node
+  /**
+   * A helper function to split an internal Node
+   * @param leftNode          The original Node that will be split. The Node will become the lelf Node after splitting.
+   * @param leftNodeID        The PageId of the original Node
+   * @param pushedUpEntry     A pageKeyPair pointer that is used to store the entry that will be pushed up as a result of splitting an internal node
   */
   void BTreeIndex::internalNodeSplit(NonLeafNodeInt *leftNode, PageId leftNodeID, PageKeyPair<int> *&pushedUpEntry)
   {
@@ -244,13 +245,13 @@ namespace badgerdb
     }
   }
 
-  /*
-  // The follwing method is used help create a new root following a splitting of the orirignal into a internal node. 
-  //
-  // @param formerRootID, the value of the original root id that was placed within the btree
-  // @param newRoot, the new root that will be added in place of the original one
-  // @param isLeaf, a boolean value for whether the node is a leaf or an internal node
-  */
+  /**
+   * Helper function to split a root node.
+   *
+   * @param formerRootID   PageId of a root node before splitting
+   * @param newRoot        a PageKeyPair that that will be added to a new root
+   * @param isLeaf         true if formerRootId is a leaf node before splitting, false otherwise
+   */
   void BTreeIndex::createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf)
   {
     PageId newRootNodeID;
@@ -277,14 +278,14 @@ namespace badgerdb
     bufMgr->unPinPage(file, headerPageNum, true);
   }
 
-  /*
-  // The following function is a helper to split a child node once full.
-  //
-  // @param leafNode, the present value of the leaf where the splitting must occur
-  // @param leafNodeID, the matching id of the leaf node needing to be split
-  // @param pushedUpEntry, the entry that will need to be pushed up accordingly
-  // @param dataEntry, the data value that is trying to get entered into the Btree
-  */
+  /**
+   * Helper function to split a leaf node.
+   *
+   * @param leafNode        leaf node to be split
+   * @param leafNodeID      PageId of a given leaf node
+   * @param pushedUpEntry   a PageKeyPair that that will be pushed up to a parent
+   * @param insertedData    a data entry that will be inserted into a leaf after splitting
+   */
   void BTreeIndex::childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> insertedData)
   {
     int middleIndex = leafOccupancy/2;
@@ -325,12 +326,12 @@ namespace badgerdb
     }
   }
 
-  /*
-  // The following function is a helper to enter a child for a node. 
-  //
-  // @param leafNode, the present value of the leaf where the splitting must occur
-  // @param insertedData, the data of the child that is trying to be added into the btree
-  */
+  /**
+   * Helper function to insert a data entry at a leaf node.
+   *
+   * @param leafNode        leaf node that an index entry is getting inserted into
+   * @param insertedData    a data entry getting inserted
+   */
   void BTreeIndex::childEntry(LeafNodeInt *leafNode, RIDKeyPair<int> insertedData)
   {
     if (leafNode->ridArray[0].page_number == INVALID_NUMBER) {
@@ -352,12 +353,13 @@ namespace badgerdb
     }
   }
 
-  /*
-  // The follwing method is used to help insert internal nodes into the Btree.
-  //
-  // @param nonLeafNode, the node of the non leaf that is being added
-  // @param insertedInternalNode, the internal node that is tyring to be changed so it can be added
-  */
+  /**
+   * Helper function to insert an index entry at a non-leaf node.
+   *
+   * @param nonLeafNode             non-leaf node that an index entry is getting inserted into
+   * @param insertedInternalNode    an index entry getting inserted
+   *
+   */
   void BTreeIndex::internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode)
   { 
     int index = 0;
@@ -406,12 +408,12 @@ namespace badgerdb
   /**
    * Helper function to determine if a given key is in a specified range.
    *
-   * @param lowVal   Low value of range, pointer to integer / double / char string
+   * @param lowVal   Low value of range
    * @param lowOp    Low operator (GT/GTE)
-   * @param highVal  High value of range, pointer to integer / double / char string
+   * @param highVal  High value of range
    * @param highOp   High operator (LT/LTE)
    * @param key      Key to be checked
-   * @return true if a given key is in a specified range, false otherwise.
+   * @return         true if a given key is in a specified range, false otherwise.
    */
   bool BTreeIndex::isKeyFound(int lowVal, const Operator lowOp, int highVal, const Operator highOp, int key)
   {
