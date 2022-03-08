@@ -297,14 +297,6 @@ class BTreeIndex {
    * High Operator. Can only be LT(<) or LTE(<=).
    */
   Operator    highOp;
-
-  /**
-   * A helper function to help find where insertedData will be inserted
-   * @param nonLeafNode   The internal node we are currently checking
-   * @param insertedData  The data to be inserted
-   * @return              The PageID of the next node to be checked
-  */
-  PageId findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData);
   
   /**
    * A recursive function used to insert an RIDKey pair
@@ -317,15 +309,14 @@ class BTreeIndex {
   */
   void insertData(Page *currentPage, PageId currentNodeID, bool isLeaf, const RIDKeyPair<int> insertedData, PageKeyPair<int> *&pushedUpEntry);
   
-
   /**
-   * A helper function to split an internal Node
-   * @param leftNode          The original Node that will be split. The Node will become the lelf Node after splitting.
-   * @param leftNodeID        The PageId of the original Node
-   * @param pushedUpEntry     A pageKeyPair pointer that is used to store the entry that will be pushed up as a result of splitting an internal node
+   * A helper function to help find where insertedData will be inserted
+   * @param nonLeafNode   The internal node we are currently checking
+   * @param insertedData  The data to be inserted
+   * @return              The PageID of the next node to be checked
   */
-  void internalNodeSplit(NonLeafNodeInt *leftNode, PageId leftNodeID, PageKeyPair<int> *&pushedUpEntry);
-  
+  PageId findBelowNode(NonLeafNodeInt *nonLeafNode, int insertedData);
+    
   /**
    * Helper function to split a root node.
    *
@@ -334,6 +325,14 @@ class BTreeIndex {
    * @param isLeaf         true if formerRootId is a leaf node before splitting, false otherwise
    */
   void createNewRoot(PageId formerRootID, PageKeyPair<int> *newRoot, bool isLeaf);
+
+  /**
+   * A helper function to split an internal Node
+   * @param leftNode          The original Node that will be split. The Node will become the lelf Node after splitting.
+   * @param leftNodeID        The PageId of the original Node
+   * @param pushedUpEntry     A pageKeyPair pointer that is used to store the entry that will be pushed up as a result of splitting an internal node
+  */
+  void internalNodeSplit(NonLeafNodeInt *leftNode, PageId leftNodeID, PageKeyPair<int> *&pushedUpEntry);
 
   /**
    * Helper function to split a leaf node.
@@ -346,14 +345,6 @@ class BTreeIndex {
   void childSplit(LeafNodeInt *leafNode, PageId leafNodeID, PageKeyPair<int> *&pushedUpEntry, const RIDKeyPair<int> insertedData);
 
   /**
-   * Helper function to insert a data entry at a leaf node.
-   *
-   * @param leafNode        leaf node that an index entry is getting inserted into
-   * @param insertedData    a data entry getting inserted
-   */
-  void childEntry(LeafNodeInt *leafNode, RIDKeyPair<int> insertedData);
-
-  /**
    * Helper function to insert an index entry at a non-leaf node.
    *
    * @param nonLeafNode             non-leaf node that an index entry is getting inserted into
@@ -361,6 +352,14 @@ class BTreeIndex {
    *
    */
   void internalNodeEntry(NonLeafNodeInt *nonLeafNode, PageKeyPair<int> *insertedInternalNode);
+    
+  /**
+   * Helper function to insert a data entry at a leaf node.
+   *
+   * @param leafNode        leaf node that an index entry is getting inserted into
+   * @param insertedData    a data entry getting inserted
+   */
+  void childEntry(LeafNodeInt *leafNode, RIDKeyPair<int> insertedData);
 
   /**
    * Helper function to determine if a given key is in a specified range.
