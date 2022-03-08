@@ -9,7 +9,7 @@
 // Name, Student ID   : Rushabh Tolia, 9078723351
 //                      Dan Rattanakornphan, 9081668148
 //                      Wesley Burnawan, 9082697898
-// Purpose 	          : This file is a header file functions for btree.cpp. 
+// Purpose 	      : This file is a header file functions for btree.cpp. 
 //============================================================================
 
 #pragma once
