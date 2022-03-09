@@ -593,7 +593,6 @@ namespace badgerdb
     }
     scanExecuting = false;
     bufMgr->unPinPage(file, currentPageNum, false);
-    // Reset variable
     nextEntry = -1;
     currentPageNum = static_cast<PageId>(-1);
     currentPageData = nullptr;
